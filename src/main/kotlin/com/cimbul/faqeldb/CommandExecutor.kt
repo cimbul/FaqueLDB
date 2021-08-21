@@ -1,6 +1,5 @@
 package com.cimbul.faqeldb
 
-import com.amazon.ion.IonValue
 import com.amazon.ion.system.IonSystemBuilder
 import org.partiql.lang.CompilerPipeline
 import org.partiql.lang.eval.EvaluationSession
@@ -10,8 +9,6 @@ import software.amazon.awssdk.services.qldbsession.model.ExecuteStatementResult
 import software.amazon.awssdk.services.qldbsession.model.Page
 import software.amazon.awssdk.services.qldbsession.model.SendCommandRequest
 import software.amazon.awssdk.services.qldbsession.model.SendCommandResponse
-import software.amazon.awssdk.services.qldbsession.model.ValueHolder
-import java.io.StringWriter
 
 class CommandExecutor {
     private val ion = IonSystemBuilder.standard().build()
@@ -27,34 +24,19 @@ class CommandExecutor {
     fun executeStatement(request: ExecuteStatementRequest): ExecuteStatementResult {
         val expression = compiler.compile(request.statement())
         val parameters = request.parameters()
-            .map { it.ionValue() }
+            .map { it.ionValue(ion) }
             .map { valueFactory.newFromIonValue(it) }
         val value = expression.eval(EvaluationSession.build {
             parameters(parameters)
         })
 
-        val out = StringWriter()
-        val writer = ion.newTextWriter(out)
-        value.ionValue.writeTo(writer)
-        val valueText = out.toString()
-        val valueHolder = ionTextValue(valueText)
-
         val page = Page.builder().build {
             nextPageToken(null)
-            values(valueHolder)
+            values(ionTextValue(value.ionValue))
         }
 
         return ExecuteStatementResult.builder().build {
             firstPage(page)
         }
-    }
-
-    private fun ValueHolder.ionValue(): IonValue {
-        val datagram = if (ionText() != null) {
-            ion.loader.load(ionText())
-        } else {
-            ion.loader.load(ionBinary().asByteArray())
-        }
-        return datagram[0]
     }
 }
