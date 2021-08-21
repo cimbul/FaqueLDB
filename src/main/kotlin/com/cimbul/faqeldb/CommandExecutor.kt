@@ -19,7 +19,7 @@ class CommandExecutor {
         }
     }
 
-    fun executeStatement(request: ExecuteStatementRequest): ExecuteStatementResult {
+    private fun executeStatement(request: ExecuteStatementRequest): ExecuteStatementResult {
         val parameters = request.parameters?.map { it.toIonElement() } ?: emptyList()
         val value = evaluator.evaluate(request.statement, parameters)
         val page = Page(values = listOf(ValueHolder.textFrom(value)))
