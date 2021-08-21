@@ -35,6 +35,8 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
 
+    implementation("org.unbroken-dome.base62:base62:1.1.0")
+
     testImplementation("io.kotest:kotest-runner-junit5:4.6.1")
     testImplementation("io.kotest:kotest-assertions-core:4.0.7")
 }
