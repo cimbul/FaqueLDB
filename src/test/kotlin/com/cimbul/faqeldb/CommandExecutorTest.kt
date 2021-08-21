@@ -9,7 +9,7 @@ class CommandExecutorTest : DescribeSpec({
     val executor = CommandExecutor()
 
     describe("executeStatement") {
-        it("should return a dummy value") {
+        it("should evaluate expressions") {
             val request = ExecuteStatementRequest.builder().build {
                 statement("1 + 1")
             }
@@ -17,7 +17,7 @@ class CommandExecutorTest : DescribeSpec({
             val result = executor.executeStatement(request)
 
             result.firstPage().values().single() shouldBe ValueHolder.builder().build {
-                ionText("'Hello, world!'")
+                ionText("2")
             }
         }
     }
