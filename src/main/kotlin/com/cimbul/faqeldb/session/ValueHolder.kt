@@ -12,20 +12,20 @@ import com.cimbul.faqeldb.toText
 
 data class ValueHolder(
     val ionText: String? = null,
-    val ionBinary: ByteArray? = null,
+    val ionBinary: Bytes? = null,
 ) {
     fun toIonElement(): AnyElement =
         when {
             ionText != null -> ionElement(ionText)
-            ionBinary != null -> ionElement(ionBinary)
+            ionBinary != null -> ionElement(ionBinary.bytes)
             else -> ionNull().asAnyElement()
         }
 
     fun toIonValue(ion: IonSystem): IonValue = toIonElement().toIonValue(ion)
 
     companion object {
-        fun binaryFrom(ion: IonValue) = ValueHolder(ionBinary = ion.toBinary())
-        fun binaryFrom(ion: IonElement) = ValueHolder(ionBinary = ion.toBinary())
+        fun binaryFrom(ion: IonValue) = ValueHolder(ionBinary = Bytes(ion.toBinary()))
+        fun binaryFrom(ion: IonElement) = ValueHolder(ionBinary = Bytes(ion.toBinary()))
         fun textFrom(ion: IonValue) = ValueHolder(ionText = ion.toText())
         fun textFrom(ion: IonElement) = ValueHolder(ionText = ion.toText())
     }

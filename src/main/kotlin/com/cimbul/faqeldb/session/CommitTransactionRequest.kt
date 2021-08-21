@@ -2,5 +2,5 @@ package com.cimbul.faqeldb.session
 
 data class CommitTransactionRequest(
     val transactionId: String,
-    val commitDigest: ByteArray,
+    val commitDigest: Bytes,
 )
