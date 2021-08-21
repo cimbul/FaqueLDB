@@ -7,14 +7,13 @@ import com.amazon.ionelement.api.toIonValue
 import org.partiql.lang.CompilerPipeline
 import org.partiql.lang.ast.toAstStatement
 import org.partiql.lang.ast.toExprNode
-import org.partiql.lang.domains.PartiqlAst
 import org.partiql.lang.eval.EvaluationSession
 import org.partiql.lang.eval.ExprValueFactory
 
 class Evaluator {
     private val ion = IonSystemBuilder.standard().build()
     private val valueFactory = ExprValueFactory.standard(ion)
-    private val transform = PartiqlAst.VisitorTransform()
+    private val transform = Transformer()
     private val compiler = CompilerPipeline.build(valueFactory) {
         addPreprocessingStep { exprNode, _ ->
             val preTransform = exprNode.toAstStatement()
