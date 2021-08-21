@@ -6,6 +6,12 @@ FaQeLDB is an in-memory database that aims to be API-compatible with Amazon Quan
 
 ## Usage
 
+### Run
+
+```shell
+$ ./gradlew run
+```
+
 ### Test
 
 ```shell
