@@ -20,6 +20,8 @@ tasks.withType<Test>() {
 }
 
 dependencies {
+    implementation("org.partiql:partiql-lang-kotlin:0.3.1")
+
     testImplementation("io.kotest:kotest-runner-junit5:4.6.1")
     testImplementation("io.kotest:kotest-assertions-core:4.0.7")
 }
