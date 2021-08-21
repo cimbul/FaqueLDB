@@ -1,37 +1,41 @@
 package com.cimbul.faqeldb
 
+import com.cimbul.faqeldb.session.ExecuteStatementRequest
+import com.cimbul.faqeldb.session.ValueHolder
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
-import software.amazon.awssdk.services.qldbsession.model.ExecuteStatementRequest
 
 class CommandExecutorTest : DescribeSpec({
     val executor = CommandExecutor()
 
     describe("executeStatement") {
         it("should evaluate expressions") {
-            val request = ExecuteStatementRequest.builder().build {
-                statement("1 + 1")
-            }
+            val request = ExecuteStatementRequest(
+                transactionId = "foo",
+                statement = "1 + 1",
+            )
 
             val result = executor.executeStatement(request)
 
-            result.firstPage().values().single() shouldBe ionTextValue("2")
+            result.firstPage.values.single() shouldBe ValueHolder(ionText = "2")
         }
 
         it("should evaluate parameters") {
-            val request = ExecuteStatementRequest.builder().build {
-                statement("2 + ?")
-                parameters(ionTextValue("3"))
-            }
+            val request = ExecuteStatementRequest(
+                transactionId = "foo",
+                statement = "2 + ?",
+                parameters = listOf(ValueHolder(ionText = "3")),
+            )
 
             val result = executor.executeStatement(request)
 
-            result.firstPage().values().single() shouldBe ionTextValue("5")
+            result.firstPage.values.single() shouldBe ValueHolder(ionText = "5")
         }
 
         it("should support queries on static data") {
-            val request = ExecuteStatementRequest.builder().build {
-                statement("""
+            val request = ExecuteStatementRequest(
+                transactionId = "foo",
+                statement = """
                     SELECT e.name AS employeeName,
                            e.projects[0].name AS firstProjectName
                     FROM
@@ -61,12 +65,12 @@ class CommandExecutorTest : DescribeSpec({
                              >>
                         } AS hr,
                         hr.employeesNest AS e
-                """)
-            }
+                """
+            )
 
             val result = executor.executeStatement(request)
 
-            result.firstPage().values().single().ionElement() shouldBe ionElement("""
+            result.firstPage.values.single().toIonElement() shouldBe ionElement("""
                 [
                     {
                       "employeeName": "Bob Smith",
