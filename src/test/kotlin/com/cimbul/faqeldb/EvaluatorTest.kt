@@ -1,16 +1,18 @@
 package com.cimbul.faqeldb
 
 import com.amazon.ionelement.api.ionInt
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import org.partiql.lang.eval.EvaluationException
 
 class EvaluatorTest : DescribeSpec({
     val evaluator = Evaluator()
 
     describe("evaluate") {
         it("should evaluate expressions") {
-            evaluator.evaluate("1 + 1", emptyList()) shouldBe ionInt(2)
+            evaluator.evaluate("1 + 1") shouldBe ionInt(2)
         }
 
         it("should interpolate parameters") {
@@ -51,7 +53,7 @@ class EvaluatorTest : DescribeSpec({
                     hr.employeesNest AS e
             """
 
-            evaluator.evaluate(query, emptyList()) shouldBe ionElement("""
+            evaluator.evaluate(query) shouldBe ionElement("""
                 [
                     {
                       "employeeName": "Bob Smith",
@@ -68,22 +70,42 @@ class EvaluatorTest : DescribeSpec({
             """)
         }
 
-        it("should support CREATE TABLE") {
-            val query = "CREATE TABLE foo"
+        describe("DML") {
+            describe("CREATE TABLE") {
+                it("should return a table ID") {
+                    val result = evaluator.evaluate("CREATE TABLE foo")
 
-            val result = evaluator.evaluate(query, emptyList())
+                    val resultStruct = result.listValues.single().asStruct()
+                    resultStruct["tableId"] shouldNotBe null
+                }
 
-            val resultStruct = result.listValues.single().asStruct()
-            resultStruct["tableId"] shouldNotBe null
-        }
+                it("should throw an error if the table exists") {
+                    evaluator.evaluate("CREATE TABLE foo")
 
-        it("should support DROP TABLE") {
-            val query = "DROP TABLE foo"
+                    shouldThrow<EvaluationException> {
+                        evaluator.evaluate("CREATE TABLE foo")
+                    }
+                }
+            }
 
-            val result = evaluator.evaluate(query, emptyList())
+            describe("DROP TABLE") {
+                it("should throw an error if the table does not exist") {
+                    shouldThrow<EvaluationException> {
+                        evaluator.evaluate("DROP TABLE foo")
+                    }
+                }
 
-            val resultStruct = result.listValues.single().asStruct()
-            resultStruct["tableId"] shouldNotBe null
+                it("should return the table ID") {
+                    val createResult = evaluator.evaluate("CREATE TABLE foo")
+                    val createResultStruct = createResult.listValues.single().asStruct()
+                    val tableId = createResultStruct["tableId"]
+
+                    val dropResult = evaluator.evaluate("DROP TABLE foo")
+
+                    val dropResultStruct = dropResult.listValues.single().asStruct()
+                    dropResultStruct["tableId"] shouldBe tableId
+                }
+            }
         }
     }
 })

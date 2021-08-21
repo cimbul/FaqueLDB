@@ -3,14 +3,19 @@ package com.cimbul.faqeldb.procedure
 import com.amazon.ionelement.api.ionString
 import com.amazon.ionelement.api.ionStructOf
 import com.amazon.ionelement.api.toIonElement
+import com.cimbul.faqeldb.data.Database
 import com.cimbul.faqeldb.newFromIonElement
+import org.partiql.lang.eval.EvaluationException
 import org.partiql.lang.eval.EvaluationSession
 import org.partiql.lang.eval.ExprValue
 import org.partiql.lang.eval.ExprValueFactory
 import org.partiql.lang.eval.builtins.storedprocedure.StoredProcedure
 import org.partiql.lang.eval.builtins.storedprocedure.StoredProcedureSignature
 
-class DropTable(private val valueFactory: ExprValueFactory) : StoredProcedure {
+class DropTable(
+    private val database: Database,
+    private val valueFactory: ExprValueFactory,
+) : StoredProcedure {
     companion object {
         val signature = StoredProcedureSignature(procedureNamePrefix + "drop_table", 1)
     }
@@ -19,14 +24,15 @@ class DropTable(private val valueFactory: ExprValueFactory) : StoredProcedure {
 
     override fun call(session: EvaluationSession, args: List<ExprValue>): ExprValue {
         require(args.size == 1)
-        val nameArg = args.single()
+        val name = args.single().ionValue.toIonElement().textValue
 
-        val name = nameArg.ionValue.toIonElement().textValue
-        val tableId = name + "_a09u31ojaoF"
+        val table = database[name]
+            ?: throw EvaluationException("Table name '$name' not found", internal = false)
+        table.dropped = true
 
         return valueFactory.newBag(listOf(
             valueFactory.newFromIonElement(ionStructOf(
-                "tableId" to ionString(tableId),
+                "tableId" to ionString(table.id),
             ))
         ))
     }
