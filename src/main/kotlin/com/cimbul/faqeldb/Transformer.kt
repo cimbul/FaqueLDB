@@ -1,5 +1,6 @@
 package com.cimbul.faqeldb
 
+import com.cimbul.faqeldb.procedure.procedureNamePrefix
 import org.partiql.lang.domains.PartiqlAst
 import org.partiql.pig.runtime.SymbolPrimitive
 import org.partiql.pig.runtime.asPrimitive
@@ -10,7 +11,7 @@ class Transformer : PartiqlAst.VisitorTransform() {
      * time.
      */
     override fun transformStatementDdl(node: PartiqlAst.Statement.Ddl): PartiqlAst.Statement {
-        val (procedureSuffix, args) = when (val op = node.op) {
+        val (suffix, args) = when (val op = node.op) {
             is PartiqlAst.DdlOp.CreateTable ->
                 Pair("create_table", listOf(op.tableName.toExpr()))
             is PartiqlAst.DdlOp.CreateIndex ->
@@ -20,15 +21,11 @@ class Transformer : PartiqlAst.VisitorTransform() {
             is PartiqlAst.DdlOp.DropIndex ->
                 Pair("drop_index", listOf(op.table.name.toExpr(), op.keys.name.toExpr()))
         }
-        val procedure = procedurePrefix + procedureSuffix
+        val procedure = procedureNamePrefix + suffix
         return PartiqlAst.Statement.Exec(procedure.asPrimitive(), args)
     }
 
     private fun SymbolPrimitive.toExpr(): PartiqlAst.Expr {
         return PartiqlAst.Expr.Lit(this.toIonElement().asAnyElement())
-    }
-
-    companion object {
-        private const val procedurePrefix = "_ql_faqe_"
     }
 }

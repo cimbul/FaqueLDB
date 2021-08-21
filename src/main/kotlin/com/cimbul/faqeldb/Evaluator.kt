@@ -1,9 +1,10 @@
 package com.cimbul.faqeldb
 
 import com.amazon.ion.system.IonSystemBuilder
+import com.amazon.ionelement.api.AnyElement
 import com.amazon.ionelement.api.IonElement
 import com.amazon.ionelement.api.toIonElement
-import com.amazon.ionelement.api.toIonValue
+import com.cimbul.faqeldb.procedure.createProcedures
 import org.partiql.lang.CompilerPipeline
 import org.partiql.lang.ast.toAstStatement
 import org.partiql.lang.ast.toExprNode
@@ -20,13 +21,15 @@ class Evaluator {
             val postTransform = transform.transformStatement(preTransform)
             postTransform.toExprNode(ion)
         }
+
+        for (procedure in createProcedures(valueFactory)) {
+            addProcedure(procedure)
+        }
     }
 
     fun evaluate(statement: String, parameters: List<IonElement>): AnyElement {
         val expression = compiler.compile(statement)
-        val parameterValues = parameters
-            .map { it.asAnyElement().toIonValue(ion) }
-            .map(valueFactory::newFromIonValue)
+        val parameterValues = parameters.map(valueFactory::newFromIonElement)
         val session = EvaluationSession.build {
             parameters(parameterValues)
         }

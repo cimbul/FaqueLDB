@@ -3,6 +3,7 @@ package com.cimbul.faqeldb
 import com.amazon.ionelement.api.ionInt
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 
 class EvaluatorTest : DescribeSpec({
     val evaluator = Evaluator()
@@ -65,6 +66,15 @@ class EvaluatorTest : DescribeSpec({
                     }
                 ]
             """)
+        }
+
+        it("should support CREATE TABLE") {
+            val query = "CREATE TABLE foo"
+
+            val result = evaluator.evaluate(query, emptyList())
+
+            val resultStruct = result.listValues.single().asStruct()
+            resultStruct["tableId"] shouldNotBe null
         }
     }
 })
