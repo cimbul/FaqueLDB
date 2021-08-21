@@ -3,7 +3,6 @@ package com.cimbul.faqeldb
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import software.amazon.awssdk.services.qldbsession.model.ExecuteStatementRequest
-import software.amazon.awssdk.services.qldbsession.model.ValueHolder
 
 class CommandExecutorTest : DescribeSpec({
     val executor = CommandExecutor()
@@ -16,9 +15,18 @@ class CommandExecutorTest : DescribeSpec({
 
             val result = executor.executeStatement(request)
 
-            result.firstPage().values().single() shouldBe ValueHolder.builder().build {
-                ionText("2")
+            result.firstPage().values().single() shouldBe ionTextValue("2")
+        }
+
+        it("should evaluate parameters") {
+            val request = ExecuteStatementRequest.builder().build {
+                statement("2 + ?")
+                parameters(ionTextValue("3"))
             }
+
+            val result = executor.executeStatement(request)
+
+            result.firstPage().values().single() shouldBe ionTextValue("5")
         }
     }
 })
