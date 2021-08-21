@@ -76,5 +76,14 @@ class EvaluatorTest : DescribeSpec({
             val resultStruct = result.listValues.single().asStruct()
             resultStruct["tableId"] shouldNotBe null
         }
+
+        it("should support DROP TABLE") {
+            val query = "DROP TABLE foo"
+
+            val result = evaluator.evaluate(query, emptyList())
+
+            val resultStruct = result.listValues.single().asStruct()
+            resultStruct["tableId"] shouldNotBe null
+        }
     }
 })

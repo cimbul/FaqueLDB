@@ -8,4 +8,5 @@ const val procedureNamePrefix = "_ql_faqe_"
 fun createProcedures(valueFactory: ExprValueFactory): List<StoredProcedure> =
     listOf(
         CreateTable(valueFactory),
+        DropTable(valueFactory),
     )
