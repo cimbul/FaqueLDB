@@ -20,6 +20,8 @@ tasks.withType<Test>() {
 }
 
 dependencies {
+    implementation(platform("software.amazon.awssdk:bom:2.17.23"))
+    implementation("software.amazon.awssdk:qldbsession")
     implementation("org.partiql:partiql-lang-kotlin:0.3.1")
 
     testImplementation("io.kotest:kotest-runner-junit5:4.6.1")
