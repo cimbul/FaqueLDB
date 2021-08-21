@@ -1,5 +1,6 @@
 package com.cimbul.faqeldb
 
+import com.amazon.ionelement.api.ionInt
 import com.cimbul.faqeldb.session.ExecuteStatementRequest
 import com.cimbul.faqeldb.session.ValueHolder
 import io.kotest.core.spec.style.DescribeSpec
@@ -17,7 +18,7 @@ class CommandExecutorTest : DescribeSpec({
 
             val result = executor.executeStatement(request)
 
-            result.firstPage.values.single() shouldBe ValueHolder(ionText = "2")
+            result.firstPage.values.single().toIonElement() shouldBe ionInt(2)
         }
 
         it("should evaluate parameters") {
@@ -29,7 +30,7 @@ class CommandExecutorTest : DescribeSpec({
 
             val result = executor.executeStatement(request)
 
-            result.firstPage.values.single() shouldBe ValueHolder(ionText = "5")
+            result.firstPage.values.single().toIonElement() shouldBe ionInt(5)
         }
 
         it("should support queries on static data") {
