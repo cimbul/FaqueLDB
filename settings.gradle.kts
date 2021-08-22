@@ -1,1 +1,1 @@
-rootProject.name = "FaQeLDB"
+rootProject.name = "FaqueLDB"

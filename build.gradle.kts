@@ -22,7 +22,7 @@ tasks.withType<Test>() {
 }
 
 application {
-    mainClass.set("com.cimbul.faqeldb.ApplicationKt")
+    mainClass.set("com.cimbul.faqueldb.ApplicationKt")
 }
 
 dependencies {

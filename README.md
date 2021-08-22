@@ -1,12 +1,12 @@
-# FaQeLDB
+# FaqueLDB
 
-_The FaQe Ledger Database_
+_The Fake Ledger Database_
 
-FaQeLDB is an in-memory database that aims to be API-compatible with Amazon Quantum Ledger Database (QLDB). To this end, it supports [PartiQL](https://partiql.org/) queries and serializes data using the [Amazon Ion](https://amzn.github.io/ion-docs/) format.
+FaqueLDB is a testing-oriented in-memory database that aims to be a drop-in replacement for Amazon Quantum Ledger Database (QLDB). To this end, it supports [PartiQL](https://partiql.org/) queries and serializes data using the [Amazon Ion](https://amzn.github.io/ion-docs/) format.
 
 ## Support
 
-FaQeLDB currently supports:
+FaqueLDB currently supports:
  * **`SELECT` Queries**:
    * Everything supported by the [PartiQL reference implementation](https://github.com/partiql/partiql-lang-kotlin), including conditionals, joins, and navigating nested data structures
    * The [`BY` clause](https://docs.aws.amazon.com/qldb/latest/developerguide/working.metadata.by-clause.html) to retrieve document IDs
