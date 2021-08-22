@@ -23,6 +23,7 @@ fun IonValue.toBinary(): ByteArray {
     val out = ByteArrayOutputStream()
     val writer = binaryWriterBuilder.build(out)
     writeTo(writer)
+    writer.close()
     return out.toByteArray()
 }
 
@@ -34,6 +35,7 @@ fun IonElement.toBinary(): ByteArray {
     val out = ByteArrayOutputStream()
     val writer = binaryWriterBuilder.build(out)
     writeTo(writer)
+    writer.close()
     return out.toByteArray()
 }
 
