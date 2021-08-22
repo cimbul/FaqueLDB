@@ -5,6 +5,7 @@ import com.amazon.ionelement.api.AnyElement
 import com.amazon.ionelement.api.IonElement
 import com.amazon.ionelement.api.toIonElement
 import com.cimbul.faqeldb.data.Database
+import com.cimbul.faqeldb.partiql.function.createFunctions
 import com.cimbul.faqeldb.partiql.procedure.createProcedures
 import org.partiql.lang.CompilerPipeline
 import org.partiql.lang.ast.toAstStatement
@@ -20,6 +21,7 @@ class Evaluator {
     private val ion = IonSystemBuilder.standard().build()
     private val valueFactory = ExprValueFactory.standard(ion)
     private val transform = PipelinedVisitorTransform(
+        QueryTransformer(),
         ProcedureTransformer(),
     )
     private val compiler = CompilerPipeline.build(valueFactory) {
@@ -31,6 +33,10 @@ class Evaluator {
 
         for (procedure in createProcedures(database, valueFactory)) {
             addProcedure(procedure)
+        }
+
+        for (function in createFunctions(database, valueFactory)) {
+            addFunction(function)
         }
     }
 

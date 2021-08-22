@@ -1,6 +1,8 @@
 package com.cimbul.faqeldb.partiql
 
 import com.amazon.ionelement.api.ionInt
+import com.amazon.ionelement.api.ionListOf
+import com.amazon.ionelement.api.ionStructOf
 import com.cimbul.faqeldb.ionElement
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
@@ -174,6 +176,63 @@ class EvaluatorTest : DescribeSpec({
                         x.asStruct()["documentId"] shouldNotBe null
                     }
                 }
+            }
+        }
+
+        describe("BY clause") {
+            evaluator.evaluate("CREATE TABLE foo")
+            val insertResult = evaluator.evaluate("INSERT INTO foo << {'x': 0}, {'x': 1} >>")
+            val documentIds = insertResult.listValues.map { it.asStruct()["documentId"] }
+
+            it("should support projecting the document ID") {
+                evaluator.evaluate("SELECT docId, foo.x FROM foo BY docId") shouldBe ionListOf(
+                    ionStructOf("docId" to documentIds[0], "x" to ionInt(0)),
+                    ionStructOf("docId" to documentIds[1], "x" to ionInt(1)),
+                )
+            }
+
+            it("should support filtering by the document ID") {
+                val result = evaluator.evaluate(
+                    "SELECT foo.x FROM foo BY docId WHERE docId = ?",
+                    listOf(documentIds[1])
+                )
+
+                result shouldBe ionListOf(
+                    ionStructOf("x" to ionInt(1))
+                )
+            }
+
+            it("should work in conjunction with table aliases") {
+                val result = evaluator.evaluate("SELECT docId, bar.x FROM foo AS bar BY docId")
+
+                result shouldBe ionListOf(
+                    ionStructOf("docId" to documentIds[0], "x" to ionInt(0)),
+                    ionStructOf("docId" to documentIds[1], "x" to ionInt(1)),
+                )
+            }
+
+            it("should work in conjunction with self joins") {
+                val result = evaluator.evaluate("""
+                    SELECT a_id, a.x AS a_x, b_id, b.x AS b_x
+                    FROM foo AS a BY a_id,
+                         foo AS b BY b_id
+                    WHERE a.x <= b.x
+                """)
+
+                result shouldBe ionListOf(
+                    ionStructOf(
+                        "a_id" to documentIds[0], "b_id" to documentIds[0],
+                        "a_x" to ionInt(0),       "b_x" to ionInt(0),
+                    ),
+                    ionStructOf(
+                        "a_id" to documentIds[0], "b_id" to documentIds[1],
+                        "a_x" to ionInt(0),       "b_x" to ionInt(1),
+                    ),
+                    ionStructOf(
+                        "a_id" to documentIds[1], "b_id" to documentIds[1],
+                        "a_x" to ionInt(1),       "b_x" to ionInt(1),
+                    ),
+                )
             }
         }
     }
