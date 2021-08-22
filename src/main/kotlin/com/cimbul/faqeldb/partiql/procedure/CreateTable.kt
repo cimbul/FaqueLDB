@@ -1,9 +1,10 @@
-package com.cimbul.faqeldb.procedure
+package com.cimbul.faqeldb.partiql.procedure
 
 import com.amazon.ionelement.api.ionString
 import com.amazon.ionelement.api.ionStructOf
 import com.amazon.ionelement.api.toIonElement
 import com.cimbul.faqeldb.data.Database
+import com.cimbul.faqeldb.data.Table
 import com.cimbul.faqeldb.newFromIonElement
 import org.partiql.lang.eval.EvaluationException
 import org.partiql.lang.eval.EvaluationSession
@@ -12,30 +13,31 @@ import org.partiql.lang.eval.ExprValueFactory
 import org.partiql.lang.eval.builtins.storedprocedure.StoredProcedure
 import org.partiql.lang.eval.builtins.storedprocedure.StoredProcedureSignature
 
-class Insert(
+class CreateTable(
     private val database: Database,
-    private val valueFactory: ExprValueFactory,
+    private val valueFactory: ExprValueFactory
 ) : StoredProcedure {
     companion object {
-        val signature = StoredProcedureSignature(fullProcedureName("insert"), 2)
+        val signature = StoredProcedureSignature(fullProcedureName("create_table"), 1)
     }
 
-    override val signature = Insert.signature
+    override val signature = CreateTable.signature
 
     override fun call(session: EvaluationSession, args: List<ExprValue>): ExprValue {
-        require(args.size == 2)
-        val tableName = args[0].ionValue.toIonElement().textValue
-        val values = args[1].ionValue.toIonElement().listValues
+        require(args.size == 1)
+        val name = args.single().ionValue.toIonElement().textValue
 
-        val table = database[tableName] ?:
-            throw EvaluationException("Table named '$tableName' does not exist", internal = true)
-        val valuesById = values.associateBy { database.newId() }
-        table.documents.putAll(valuesById)
+        if (database[name] != null) {
+            throw EvaluationException("Table with name '$name' already exists", internal = false)
+        }
 
-        return valueFactory.newBag(valuesById.keys.map { id ->
+        val table = Table(database.newId(), name)
+        database.tables.add(table)
+
+        return valueFactory.newBag(listOf(
             valueFactory.newFromIonElement(ionStructOf(
-                "documentId" to ionString(id)
+                "tableId" to ionString(table.id),
             ))
-        })
+        ))
     }
 }

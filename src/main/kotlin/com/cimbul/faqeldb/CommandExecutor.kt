@@ -1,5 +1,6 @@
 package com.cimbul.faqeldb
 
+import com.cimbul.faqeldb.partiql.Evaluator
 import com.cimbul.faqeldb.session.ExecuteStatementRequest
 import com.cimbul.faqeldb.session.ExecuteStatementResult
 import com.cimbul.faqeldb.session.Page

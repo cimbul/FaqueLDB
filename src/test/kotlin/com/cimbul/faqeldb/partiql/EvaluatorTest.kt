@@ -1,6 +1,7 @@
-package com.cimbul.faqeldb
+package com.cimbul.faqeldb.partiql
 
 import com.amazon.ionelement.api.ionInt
+import com.cimbul.faqeldb.ionElement
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.inspectors.forAll

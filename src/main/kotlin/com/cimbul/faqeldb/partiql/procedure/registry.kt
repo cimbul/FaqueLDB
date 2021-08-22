@@ -1,4 +1,4 @@
-package com.cimbul.faqeldb.procedure
+package com.cimbul.faqeldb.partiql.procedure
 
 import com.cimbul.faqeldb.data.Database
 import org.partiql.lang.eval.ExprValueFactory

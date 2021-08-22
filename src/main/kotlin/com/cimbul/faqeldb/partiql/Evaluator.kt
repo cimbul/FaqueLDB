@@ -1,11 +1,12 @@
-package com.cimbul.faqeldb
+package com.cimbul.faqeldb.partiql
 
 import com.amazon.ion.system.IonSystemBuilder
 import com.amazon.ionelement.api.AnyElement
 import com.amazon.ionelement.api.IonElement
 import com.amazon.ionelement.api.toIonElement
 import com.cimbul.faqeldb.data.Database
-import com.cimbul.faqeldb.procedure.createProcedures
+import com.cimbul.faqeldb.newFromIonElement
+import com.cimbul.faqeldb.partiql.procedure.createProcedures
 import org.partiql.lang.CompilerPipeline
 import org.partiql.lang.ast.toAstStatement
 import org.partiql.lang.ast.toExprNode

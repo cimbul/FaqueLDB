@@ -1,6 +1,6 @@
-package com.cimbul.faqeldb
+package com.cimbul.faqeldb.partiql
 
-import com.cimbul.faqeldb.procedure.fullProcedureName
+import com.cimbul.faqeldb.partiql.procedure.fullProcedureName
 import org.partiql.lang.domains.PartiqlAst
 import org.partiql.lang.domains.PartiqlAst.DdlOp
 import org.partiql.lang.domains.PartiqlAst.DmlOp
