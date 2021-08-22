@@ -70,7 +70,7 @@ class EvaluatorTest : DescribeSpec({
             """)
         }
 
-        describe("DML") {
+        describe("DDL") {
             describe("CREATE TABLE") {
                 it("should return a table ID") {
                     val result = evaluator.evaluate("CREATE TABLE foo")
@@ -85,6 +85,14 @@ class EvaluatorTest : DescribeSpec({
                     shouldThrow<EvaluationException> {
                         evaluator.evaluate("CREATE TABLE foo")
                     }
+                }
+
+                it("should create an empty table") {
+                    evaluator.evaluate("CREATE TABLE foo")
+
+                    val result = evaluator.evaluate("SELECT * FROM foo")
+
+                    result.listValues.shouldBeEmpty()
                 }
             }
 
@@ -104,6 +112,16 @@ class EvaluatorTest : DescribeSpec({
 
                     val dropResultStruct = dropResult.listValues.single().asStruct()
                     dropResultStruct["tableId"] shouldBe tableId
+                }
+
+                it("should remove the table from the namespace") {
+                    evaluator.evaluate("CREATE TABLE foo")
+
+                    evaluator.evaluate("DROP TABLE foo")
+
+                    shouldThrow<EvaluationException> {
+                        evaluator.evaluate("SELECT * FROM foo")
+                    }
                 }
             }
         }

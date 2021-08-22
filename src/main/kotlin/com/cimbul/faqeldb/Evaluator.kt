@@ -9,6 +9,7 @@ import com.cimbul.faqeldb.procedure.createProcedures
 import org.partiql.lang.CompilerPipeline
 import org.partiql.lang.ast.toAstStatement
 import org.partiql.lang.ast.toExprNode
+import org.partiql.lang.eval.Bindings
 import org.partiql.lang.eval.EvaluationSession
 import org.partiql.lang.eval.ExprValueFactory
 
@@ -35,6 +36,7 @@ class Evaluator {
         val parameterValues = parameters.map(valueFactory::newFromIonElement)
         val session = EvaluationSession.build {
             parameters(parameterValues)
+            globals(Bindings.over { name -> database[name]?.toExprValue(valueFactory) })
         }
         val value = expression.eval(session)
         return value.ionValue.toIonElement()
