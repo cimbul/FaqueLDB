@@ -3,6 +3,9 @@ package com.cimbul.faqeldb
 import com.amazon.ionelement.api.ionInt
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.partiql.lang.eval.EvaluationException
@@ -75,8 +78,7 @@ class EvaluatorTest : DescribeSpec({
                 it("should return a table ID") {
                     val result = evaluator.evaluate("CREATE TABLE foo")
 
-                    val resultStruct = result.listValues.single().asStruct()
-                    resultStruct["tableId"] shouldNotBe null
+                    result.listValues.single().asStruct()["tableId"] shouldNotBe null
                 }
 
                 it("should throw an error if the table exists") {
@@ -121,6 +123,54 @@ class EvaluatorTest : DescribeSpec({
 
                     shouldThrow<EvaluationException> {
                         evaluator.evaluate("SELECT * FROM foo")
+                    }
+                }
+            }
+        }
+
+        describe("DML") {
+            evaluator.evaluate("CREATE TABLE foo")
+
+            describe("INSERT INTO table VALUE value") {
+                it("should insert the record into the table") {
+                    evaluator.evaluate("INSERT INTO foo VALUE {'bar': 'quux'}")
+
+                    evaluator.evaluate("SELECT * FROM foo") shouldBe ionElement("""
+                        [{bar: "quux"}]
+                    """)
+                }
+
+                it("should preserve existing records") {
+                    evaluator.evaluate("INSERT INTO foo VALUE {'a': 1}")
+                    evaluator.evaluate("INSERT INTO foo VALUE {'a': 2}")
+
+                    evaluator.evaluate("SELECT * FROM foo") shouldBe ionElement("""
+                       [{a: 1}, {a: 2}]
+                    """)
+                }
+
+                it("should return the document ID of the record") {
+                    val result = evaluator.evaluate("INSERT INTO foo VALUE {'bar': 'quux'}")
+
+                    result.listValues.single().asStruct()["documentId"] shouldNotBe null
+                }
+            }
+
+            describe("INSERT INTO table values") {
+                it("should insert the records into the table") {
+                    evaluator.evaluate("INSERT INTO foo << {'a': 1}, {'a': 2} >>")
+
+                    evaluator.evaluate("SELECT * FROM foo") shouldBe ionElement("""
+                       [{a: 1}, {a: 2}]
+                    """)
+                }
+
+                it("should return the document IDs for each record") {
+                    val result = evaluator.evaluate("INSERT INTO foo << {'a': 1}, {'a': 2} >>")
+
+                    result.listValues shouldHaveSize 2
+                    result.listValues.forAll { x ->
+                        x.asStruct()["documentId"] shouldNotBe null
                     }
                 }
             }
