@@ -45,7 +45,7 @@ class Evaluator {
         val parameterValues = parameters.map(valueFactory::newFromIonElement)
         val session = EvaluationSession.build {
             parameters(parameterValues)
-            globals(Bindings.over { name -> database[name]?.toExprValue(valueFactory) })
+            globals(Bindings.over { name -> database.getBinding(name, valueFactory) })
         }
         val value = expression.eval(session)
         return value.ionValue.toIonElement()
