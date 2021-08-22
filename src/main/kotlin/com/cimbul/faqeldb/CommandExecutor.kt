@@ -53,7 +53,7 @@ class CommandExecutor {
     private fun executeStatement(request: ExecuteStatementRequest): ExecuteStatementResult {
         val parameters = request.parameters?.map { it.toIonElement() } ?: emptyList()
         val value = evaluator.evaluate(request.statement, parameters)
-        val page = Page(values = listOf(ValueHolder.textFrom(value)))
+        val page = Page(values = value.listValues.map(ValueHolder::textFrom))
         return ExecuteStatementResult(firstPage = page)
     }
 }

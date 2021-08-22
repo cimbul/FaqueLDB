@@ -1,6 +1,7 @@
 package com.cimbul.faqeldb
 
 import com.amazon.ionelement.api.ionInt
+import com.amazon.ionelement.api.ionStructOf
 import com.cimbul.faqeldb.session.ExecuteStatementRequest
 import com.cimbul.faqeldb.session.SendCommandRequest
 import com.cimbul.faqeldb.session.ValueHolder
@@ -16,7 +17,7 @@ class CommandExecutorTest : DescribeSpec({
             val request = SendCommandRequest(
                 executeStatement = ExecuteStatementRequest(
                     transactionId = "foo",
-                    statement = "? + 4",
+                    statement = "select ? + 4 as answer from << {} >>",
                     parameters = listOf(ValueHolder(ionText = "3"))
                 ),
             )
@@ -27,7 +28,7 @@ class CommandExecutorTest : DescribeSpec({
             executeResult shouldNotBe null
 
             val resultValue = executeResult!!.firstPage.values.single().toIonElement()
-            resultValue shouldBe ionInt(7)
+            resultValue shouldBe ionStructOf("answer" to ionInt(7))
         }
     }
 })
