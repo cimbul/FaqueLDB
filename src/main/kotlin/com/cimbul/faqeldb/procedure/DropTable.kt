@@ -17,7 +17,7 @@ class DropTable(
     private val valueFactory: ExprValueFactory,
 ) : StoredProcedure {
     companion object {
-        val signature = StoredProcedureSignature(procedureNamePrefix + "drop_table", 1)
+        val signature = StoredProcedureSignature(fullProcedureName("drop_table"), 1)
     }
 
     override val signature = DropTable.signature

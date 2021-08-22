@@ -18,7 +18,7 @@ class CreateTable(
     private val valueFactory: ExprValueFactory
 ) : StoredProcedure {
     companion object {
-        val signature = StoredProcedureSignature(procedureNamePrefix + "create_table", 1)
+        val signature = StoredProcedureSignature(fullProcedureName("create_table"), 1)
     }
 
     override val signature = CreateTable.signature
