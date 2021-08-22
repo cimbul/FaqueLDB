@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -39,4 +40,11 @@ dependencies {
 
     testImplementation("io.kotest:kotest-runner-junit5:4.6.1")
     testImplementation("io.kotest:kotest-assertions-core:4.0.7")
+}
+
+configurations.all {
+    resolutionStrategy {
+        // Fix warning about incompatible kotlin JARs on the classpath
+        force("org.jetbrains.kotlin:kotlin-reflect:${getKotlinPluginVersion()}")
+    }
 }
