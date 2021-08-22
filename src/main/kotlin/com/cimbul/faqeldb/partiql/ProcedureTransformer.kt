@@ -1,36 +1,34 @@
 package com.cimbul.faqeldb.partiql
 
-import com.cimbul.faqeldb.partiql.procedure.fullProcedureName
 import org.partiql.lang.domains.PartiqlAst
 import org.partiql.lang.domains.PartiqlAst.DdlOp
 import org.partiql.lang.domains.PartiqlAst.DmlOp
 import org.partiql.lang.domains.PartiqlAst.Expr
 import org.partiql.lang.domains.PartiqlAst.Statement
-import org.partiql.pig.runtime.SymbolPrimitive
 import org.partiql.pig.runtime.asPrimitive
 
 /** Transform DML and DDL into stored procedure calls */
-class Transformer : PartiqlAst.VisitorTransform() {
+class ProcedureTransformer : PartiqlAst.VisitorTransform() {
     override fun transformStatementDdl(node: Statement.Ddl): Statement {
         val (procedure, args) = when (val op = node.op) {
             is DdlOp.CreateTable ->
                 // CREATE TABLE table
                 // EXEC create_table `table`
-                "create_table" to listOf(op.tableName.toExpr())
+                "create_table" to listOf(op.tableName.toLiteral())
             is DdlOp.CreateIndex ->
                 // CREATE INDEX ON table (field, ...)
                 // EXEC create_index `table` [field, ...]
-                "create_index" to listOf(op.indexName.name.toExpr(), Expr.List(op.fields))
+                "create_index" to listOf(op.indexName.name.toLiteral(), Expr.List(op.fields))
             is DdlOp.DropTable ->
                 // DROP TABLE table
                 // EXEC drop_table `table`
-                "drop_table" to listOf(op.tableName.name.toExpr())
+                "drop_table" to listOf(op.tableName.name.toLiteral())
             is DdlOp.DropIndex ->
                 // DROP INDEX index ON table
                 // EXEC drop_index `table` `index`
-                "drop_index" to listOf(op.table.name.toExpr(), op.keys.name.toExpr())
+                "drop_index" to listOf(op.table.name.toLiteral(), op.keys.name.toLiteral())
         }
-        return Statement.Exec(fullProcedureName(procedure).asPrimitive(), args)
+        return Statement.Exec(internalName(procedure).asPrimitive(), args)
     }
 
     override fun transformStatementDml(node: Statement.Dml): Statement {
@@ -48,7 +46,7 @@ class Transformer : PartiqlAst.VisitorTransform() {
                 require(target is Expr.Id) {
                     "Expected table identifier as target for INSERT statement"
                 }
-                "insert" to listOf(target.name.toExpr(), op.values)
+                "insert" to listOf(target.name.toLiteral(), op.values)
             }
             is DmlOp.InsertValue -> {
                 // INSERT INTO table VALUE value
@@ -61,16 +59,12 @@ class Transformer : PartiqlAst.VisitorTransform() {
                 require(target is Expr.Id) {
                     "Expected table identifier as target for INSERT statement"
                 }
-                "insert" to listOf(target.name.toExpr(), Expr.Bag(listOf(op.value)))
+                "insert" to listOf(target.name.toLiteral(), Expr.Bag(listOf(op.value)))
             }
             is DmlOp.Delete -> TODO("DELETE is not supported")
             is DmlOp.Remove -> TODO("REMOVE is not supported")
             is DmlOp.Set -> TODO("UPDATE/SET is not supported")
         }
-        return Statement.Exec(fullProcedureName(procedure).asPrimitive(), args)
-    }
-
-    private fun SymbolPrimitive.toExpr(): Expr {
-        return Expr.Lit(this.toIonElement().asAnyElement())
+        return Statement.Exec(internalName(procedure).asPrimitive(), args)
     }
 }

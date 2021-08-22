@@ -1,7 +1,7 @@
 package com.cimbul.faqeldb.data
 
 import com.amazon.ionelement.api.IonElement
-import com.cimbul.faqeldb.newFromIonElement
+import com.cimbul.faqeldb.partiql.newFromIonElement
 import org.partiql.lang.eval.ExprValue
 import org.partiql.lang.eval.ExprValueFactory
 

@@ -5,7 +5,8 @@ import com.amazon.ionelement.api.ionStructOf
 import com.amazon.ionelement.api.toIonElement
 import com.cimbul.faqeldb.data.Database
 import com.cimbul.faqeldb.data.Table
-import com.cimbul.faqeldb.newFromIonElement
+import com.cimbul.faqeldb.partiql.internalName
+import com.cimbul.faqeldb.partiql.newFromIonElement
 import org.partiql.lang.eval.EvaluationException
 import org.partiql.lang.eval.EvaluationSession
 import org.partiql.lang.eval.ExprValue
@@ -18,7 +19,7 @@ class CreateTable(
     private val valueFactory: ExprValueFactory
 ) : StoredProcedure {
     companion object {
-        val signature = StoredProcedureSignature(fullProcedureName("create_table"), 1)
+        val signature = StoredProcedureSignature(internalName("create_table"), 1)
     }
 
     override val signature = CreateTable.signature

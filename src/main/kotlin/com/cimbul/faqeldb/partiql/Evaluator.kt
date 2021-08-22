@@ -5,7 +5,6 @@ import com.amazon.ionelement.api.AnyElement
 import com.amazon.ionelement.api.IonElement
 import com.amazon.ionelement.api.toIonElement
 import com.cimbul.faqeldb.data.Database
-import com.cimbul.faqeldb.newFromIonElement
 import com.cimbul.faqeldb.partiql.procedure.createProcedures
 import org.partiql.lang.CompilerPipeline
 import org.partiql.lang.ast.toAstStatement
@@ -13,13 +12,16 @@ import org.partiql.lang.ast.toExprNode
 import org.partiql.lang.eval.Bindings
 import org.partiql.lang.eval.EvaluationSession
 import org.partiql.lang.eval.ExprValueFactory
+import org.partiql.lang.eval.visitors.PipelinedVisitorTransform
 
 class Evaluator {
     private val database = Database()
 
     private val ion = IonSystemBuilder.standard().build()
     private val valueFactory = ExprValueFactory.standard(ion)
-    private val transform = Transformer()
+    private val transform = PipelinedVisitorTransform(
+        ProcedureTransformer(),
+    )
     private val compiler = CompilerPipeline.build(valueFactory) {
         addPreprocessingStep { exprNode, _ ->
             val preTransform = exprNode.toAstStatement()
