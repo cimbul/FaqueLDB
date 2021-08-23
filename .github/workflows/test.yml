@@ -26,4 +26,4 @@ jobs:
         uses: gradle/gradle-build-action@v1.4.1
         with:
           arguments: test
-          gradle-executable: gradlew
+          gradle-executable: ../gradlew
