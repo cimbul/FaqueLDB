@@ -2,10 +2,11 @@ name: Test
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
-
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -18,5 +19,5 @@ jobs:
       - name: Test
         uses: gradle/gradle-build-action@v1.4.1
         with:
-          # Gradle command line arguments, see gradle --help
           arguments: test
+          gradle-executable: gradlew
