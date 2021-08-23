@@ -14,16 +14,19 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
       
       - name: Setup JDK
         uses: actions/setup-java@v2.2.0
         with:
           java-version: 11 
           distribution: zulu
+
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v1.0.4
       
       - name: Test
         uses: gradle/gradle-build-action@v1.4.1
         with:
           arguments: test
-          gradle-executable: ../gradlew
