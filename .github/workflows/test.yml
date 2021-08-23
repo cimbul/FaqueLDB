@@ -14,7 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
       
       - name: Setup JDK
         uses: actions/setup-java@v2.2.0
@@ -26,6 +27,3 @@ jobs:
         uses: gradle/gradle-build-action@v1.4.1
         with:
           arguments: test
-          gradle-executable: gradlew
-          distributions-cache-enabled: false
-          wrapper-cache-enabled: false
