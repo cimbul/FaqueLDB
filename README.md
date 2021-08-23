@@ -48,7 +48,13 @@ These features of QLDB are **not supported** and are low priority:
 
 ### Run
 
-#### Start Server
+#### Start Server (Docker)
+
+```
+docker run --rm -p 8000:8000 cimbul/faqueldb
+```
+
+#### Start Server (Local)
 
 ```shell
 $ ./gradlew run
