@@ -8,5 +8,7 @@ fun createProcedures(database: Database, valueFactory: ExprValueFactory): List<S
     listOf(
         CreateTable(database, valueFactory),
         DropTable(database, valueFactory),
+        CreateIndex(database, valueFactory),
+        DropIndex(database, valueFactory),
         Insert(database, valueFactory),
     )

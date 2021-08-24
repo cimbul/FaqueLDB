@@ -15,10 +15,12 @@ class ProcedureTransformer : PartiqlAst.VisitorTransform() {
                 // CREATE TABLE table
                 // EXEC create_table `table`
                 "create_table" to listOf(op.tableName.toLiteral())
-            is DdlOp.CreateIndex ->
+            is DdlOp.CreateIndex -> {
                 // CREATE INDEX ON table (field, ...)
                 // EXEC create_index `table` [field, ...]
-                "create_index" to listOf(op.indexName.name.toLiteral(), Expr.List(op.fields))
+                val fieldNames = op.fields.map { (it as Expr.Id).name.toLiteral() }
+                "create_index" to listOf(op.indexName.name.toLiteral(), Expr.List(fieldNames))
+            }
             is DdlOp.DropTable ->
                 // DROP TABLE table
                 // EXEC drop_table `table`

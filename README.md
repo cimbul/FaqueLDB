@@ -20,13 +20,13 @@ FaqueLDB currently supports:
  * **DDL**:
    * [`CREATE TABLE`](https://docs.aws.amazon.com/qldb/latest/developerguide/ql-reference.create-table.html) without tags
    * [`DROP TABLE`](https://docs.aws.amazon.com/qldb/latest/developerguide/ql-reference.drop-table.html)
+   * [`CREATE INDEX`](https://docs.aws.amazon.com/qldb/latest/developerguide/ql-reference.create-index.html) is implemented, but it doesn't affect query performance
  * **DML**:
    * [`INSERT`](https://docs.aws.amazon.com/qldb/latest/developerguide/ql-reference.insert.html) for single and multiple values
 
 These features of QLDB are not currently supported, but are **on the roadmap**:
  * **DDL**:
-   * [`CREATE INDEX`](https://docs.aws.amazon.com/qldb/latest/developerguide/ql-reference.create-index.html) support is in progress, but it won't affect query performance
-   * [`DROP INDEX`](https://docs.aws.amazon.com/qldb/latest/developerguide/ql-reference.drop-index.html) support is in progress
+   * [`DROP INDEX`](https://docs.aws.amazon.com/qldb/latest/developerguide/ql-reference.drop-index.html) does not support the `WITH` clause that is required by QLDB
    * [`UNDROP TABLE`](https://docs.aws.amazon.com/qldb/latest/developerguide/ql-reference.undrop-table.html) is not supported by the PartiQL reference parser yet
  * **DML**:
    * [`DELETE`](https://docs.aws.amazon.com/qldb/latest/developerguide/ql-reference.delete.html)

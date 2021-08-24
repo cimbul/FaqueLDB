@@ -129,6 +129,17 @@ class EvaluatorTest : DescribeSpec({
                     }
                 }
             }
+
+            describe("CREATE INDEX") {
+                val tableResult = evaluator.evaluate("CREATE TABLE foo")
+                val tableId = tableResult.listValues.single().asStruct()["tableId"]
+
+                it("should return the table ID") {
+                    val indexResult = evaluator.evaluate("CREATE INDEX ON foo (bar)")
+
+                    indexResult.listValues.single().asStruct()["tableId"] shouldBe tableId
+                }
+            }
         }
 
         describe("DML") {
