@@ -8,6 +8,8 @@ import com.amazon.ionelement.api.AnyElement
 import com.amazon.ionelement.api.IonElement
 import com.amazon.ionelement.api.IonElementLoaderOptions
 import com.amazon.ionelement.api.createIonElementLoader
+import com.amazon.ionhash.IonHashWriterBuilder
+import com.amazon.ionhash.IonHasherProvider
 import java.io.ByteArrayOutputStream
 
 private val readerBuilder = IonReaderBuilder.standard()
@@ -27,6 +29,18 @@ fun IonValue.toBinary(): ByteArray {
     return out.toByteArray()
 }
 
+fun IonValue.hash(hasherProvider: IonHasherProvider): ByteArray {
+    val out = ByteArrayOutputStream()
+    val writer = binaryWriterBuilder.build(out)
+    val hashWriter = IonHashWriterBuilder.standard()
+        .withHasherProvider(hasherProvider)
+        .withWriter(writer)
+        .build()
+    writeTo(hashWriter)
+    hashWriter.close()
+    return hashWriter.digest()
+}
+
 fun IonElement.toText(): String {
     return toString()
 }
@@ -37,6 +51,18 @@ fun IonElement.toBinary(): ByteArray {
     writeTo(writer)
     writer.close()
     return out.toByteArray()
+}
+
+fun IonElement.hash(hasherProvider: IonHasherProvider): ByteArray {
+    val out = ByteArrayOutputStream()
+    val writer = binaryWriterBuilder.build(out)
+    val hashWriter = IonHashWriterBuilder.standard()
+        .withHasherProvider(hasherProvider)
+        .withWriter(writer)
+        .build()
+    writeTo(hashWriter)
+    hashWriter.close()
+    return hashWriter.digest()
 }
 
 fun ionElement(text: String): AnyElement {

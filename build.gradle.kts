@@ -28,6 +28,8 @@ application {
 dependencies {
     implementation("org.partiql:partiql-lang-kotlin:0.3.1")
 
+    implementation("com.amazon.ion:ion-hash-java:1.0.0")
+
     implementation(platform("org.http4k:http4k-bom:4.11.0.1"))
     implementation("org.http4k:http4k-core")
     implementation("org.http4k:http4k-server-netty")
