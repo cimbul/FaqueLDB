@@ -6,8 +6,11 @@ import com.amazon.ionelement.api.ionStructOf
 data class CommittedRevision(
     val blockAddress: BlockAddress,
     val metadata: RevisionMetadata,
-    val data: IonElement
-) {
+    override val data: IonElement
+) : Revision {
+    override val id get() = metadata.id
+    override val version get() = metadata.version
+
     val hash = Hash.of(data) * metadata.hash
 
     val ionElement: IonElement = ionStructOf(

@@ -18,7 +18,7 @@ sealed class HashTree: Iterable<Hash> {
                     .windowed(size = 2, step = 2, partialWindows = true)
                     .map { pair -> if (pair.size == 1) pair[0] else HashTreeNode(pair[0], pair[1]) }
             }
-            return nodes.single()
+            return if (nodes.isEmpty()) HashTreeLeaf(Hash.zero) else nodes.single()
         }
     }
 

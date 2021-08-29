@@ -1,8 +1,8 @@
 package com.cimbul.faqueldb.partiql.function
 
-import com.cimbul.faqueldb.data.Database
+import com.cimbul.faqueldb.data.StatementContext
 import org.partiql.lang.eval.ExprValueFactory
 
-fun createFunctions(database: Database, valueFactory: ExprValueFactory) = listOf(
-    Blocks(database, valueFactory)
+fun createFunctions(context: StatementContext, valueFactory: ExprValueFactory) = listOf(
+    Blocks(context, valueFactory)
 )

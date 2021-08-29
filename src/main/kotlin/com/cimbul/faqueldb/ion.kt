@@ -1,6 +1,7 @@
 package com.cimbul.faqueldb
 
 import com.amazon.ion.IonValue
+import com.amazon.ion.Timestamp
 import com.amazon.ion.system.IonBinaryWriterBuilder
 import com.amazon.ion.system.IonReaderBuilder
 import com.amazon.ion.system.IonTextWriterBuilder
@@ -11,6 +12,7 @@ import com.amazon.ionelement.api.createIonElementLoader
 import com.amazon.ionhash.IonHashWriterBuilder
 import com.amazon.ionhash.IonHasherProvider
 import java.io.ByteArrayOutputStream
+import java.time.Instant
 
 private val readerBuilder = IonReaderBuilder.standard()
 private val textWriterBuilder = IonTextWriterBuilder.standard()
@@ -71,4 +73,8 @@ fun ionElement(text: String): AnyElement {
 
 fun ionElement(binary: ByteArray): AnyElement {
     return loader.loadSingleElement(readerBuilder.build(binary))
+}
+
+fun Instant.toIonTimestamp(): Timestamp {
+    return Timestamp.forMillis(this.toEpochMilli(), 0)
 }

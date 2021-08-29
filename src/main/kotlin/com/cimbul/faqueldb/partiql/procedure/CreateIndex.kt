@@ -3,8 +3,8 @@ package com.cimbul.faqueldb.partiql.procedure
 import com.amazon.ionelement.api.ionString
 import com.amazon.ionelement.api.ionStructOf
 import com.amazon.ionelement.api.toIonElement
-import com.cimbul.faqueldb.data.Database
 import com.cimbul.faqueldb.data.Index
+import com.cimbul.faqueldb.data.StatementContext
 import com.cimbul.faqueldb.partiql.internalName
 import com.cimbul.faqueldb.partiql.newFromIonElement
 import org.partiql.lang.eval.EvaluationException
@@ -15,7 +15,7 @@ import org.partiql.lang.eval.builtins.storedprocedure.StoredProcedure
 import org.partiql.lang.eval.builtins.storedprocedure.StoredProcedureSignature
 
 class CreateIndex(
-    private val database: Database,
+    private val context: StatementContext,
     private val valueFactory: ExprValueFactory
 ) : StoredProcedure {
     companion object {
@@ -31,14 +31,16 @@ class CreateIndex(
         require(indexFields.listValues.size == 1) { "Indexes only supported on exactly one field" }
         val indexField = indexFields.listValues.single().textValue
 
-        val table = database[tableName] ?:
+        val table = context.transaction.database[tableName] ?:
             throw EvaluationException("Table '$tableName' does not exist", internal = false)
 
         if (table.indexes.any { it.expr == indexField }) {
             throw EvaluationException("Index on field $indexField already exists", internal = false)
         }
 
-        table.indexes.add(Index(database.newId(), indexField))
+        val indexes = table.indexes + Index(context.transaction.database.newId(), indexField)
+        context.transaction.database = context.transaction.database
+            .withTable(table.copy(indexes = indexes))
 
         return valueFactory.newBag(listOf(
             valueFactory.newFromIonElement(ionStructOf(

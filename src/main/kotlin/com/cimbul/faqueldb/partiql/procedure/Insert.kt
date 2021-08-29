@@ -3,7 +3,7 @@ package com.cimbul.faqueldb.partiql.procedure
 import com.amazon.ionelement.api.ionString
 import com.amazon.ionelement.api.ionStructOf
 import com.amazon.ionelement.api.toIonElement
-import com.cimbul.faqueldb.data.Database
+import com.cimbul.faqueldb.data.StatementContext
 import com.cimbul.faqueldb.partiql.internalName
 import com.cimbul.faqueldb.partiql.newFromIonElement
 import org.partiql.lang.eval.EvaluationException
@@ -14,7 +14,7 @@ import org.partiql.lang.eval.builtins.storedprocedure.StoredProcedure
 import org.partiql.lang.eval.builtins.storedprocedure.StoredProcedureSignature
 
 class Insert(
-    private val database: Database,
+    private val context: StatementContext,
     private val valueFactory: ExprValueFactory,
 ) : StoredProcedure {
     companion object {
@@ -28,10 +28,13 @@ class Insert(
         val tableName = args[0].ionValue.toIonElement().textValue
         val values = args[1].ionValue.toIonElement().listValues
 
-        val table = database[tableName] ?:
+        val table = context.transaction.database[tableName] ?:
             throw EvaluationException("Table named '$tableName' does not exist", internal = true)
-        val valuesById = values.associateBy { database.newId() }
-        table.documents.putAll(valuesById)
+        val valuesById = values.associateBy { context.transaction.database.newId() }
+
+        for ((id, value) in valuesById) {
+            context.addRevision(table.id, id, value)
+        }
 
         return valueFactory.newBag(valuesById.keys.map { id ->
             valueFactory.newFromIonElement(ionStructOf(

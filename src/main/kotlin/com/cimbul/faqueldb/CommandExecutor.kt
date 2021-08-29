@@ -1,7 +1,10 @@
 package com.cimbul.faqueldb
 
+import com.cimbul.faqueldb.data.Database
+import com.cimbul.faqueldb.data.TransactionContext
 import com.cimbul.faqueldb.partiql.Evaluator
 import com.cimbul.faqueldb.session.AbortTransactionResult
+import com.cimbul.faqueldb.session.CommitTransactionRequest
 import com.cimbul.faqueldb.session.CommitTransactionResult
 import com.cimbul.faqueldb.session.EndSessionResult
 import com.cimbul.faqueldb.session.ExecuteStatementRequest
@@ -15,10 +18,10 @@ import com.cimbul.faqueldb.session.StartTransactionResult
 import com.cimbul.faqueldb.session.ValueHolder
 
 class CommandExecutor {
-    private val evaluator = Evaluator()
+    private var database = Database()
+    private var transactions = mutableMapOf<String, TransactionContext>()
 
     private val sessionToken = "ba09bjmp32or8hvanv98fav"
-    private val transactionId = "09b314a09fjpboan3h3i8va"
 
     fun executeCommand(request: SendCommandRequest): SendCommandResult {
         return when {
@@ -26,7 +29,7 @@ class CommandExecutor {
                 startSession = StartSessionResult(sessionToken)
             )
             request.startTransaction != null -> SendCommandResult(
-                startTransaction = StartTransactionResult(transactionId)
+                startTransaction = startTransaction()
             )
             request.executeStatement != null -> SendCommandResult(
                 executeStatement = executeStatement(request.executeStatement)
@@ -35,25 +38,53 @@ class CommandExecutor {
                 fetchPage = FetchPageResult(Page(values = emptyList()))
             )
             request.commitTransaction != null -> SendCommandResult(
-                commitTransaction = CommitTransactionResult(
-                    request.commitTransaction.transactionId,
-                    request.commitTransaction.commitDigest,
-                )
+                commitTransaction = commitTransaction(request.commitTransaction)
             )
             request.abortTransaction != null -> SendCommandResult(
-                abortTransaction = AbortTransactionResult()
+                abortTransaction = abortTransaction()
             )
             request.endSession != null -> SendCommandResult(
-                endSession = EndSessionResult()
+                endSession = endSession()
             )
             else -> TODO()
         }
     }
 
+    private fun startTransaction(): StartTransactionResult {
+        val transactionId = database.newId()
+        val context = TransactionContext(transactionId, database)
+        transactions[transactionId] = context
+        return StartTransactionResult(transactionId)
+    }
+
     private fun executeStatement(request: ExecuteStatementRequest): ExecuteStatementResult {
-        val parameters = request.parameters?.map { it.toIonElement() } ?: emptyList()
-        val value = evaluator.evaluate(request.statement, parameters)
-        val page = Page(values = value.listValues.map(ValueHolder::binaryFrom))
-        return ExecuteStatementResult(firstPage = page)
+        val transaction = transactions[request.transactionId] ?:
+            throw Exception("Invalid transaction ID")
+        return transaction.inStatementContext(request.statement) { context ->
+            val evaluator = Evaluator(context)
+            val parameters = request.parameters?.map { it.toIonElement() } ?: emptyList()
+            val value = evaluator.evaluate(request.statement, parameters)
+            val page = Page(values = value.listValues.map(ValueHolder::binaryFrom))
+            ExecuteStatementResult(firstPage = page)
+        }
+    }
+
+    private fun commitTransaction(request: CommitTransactionRequest): CommitTransactionResult {
+        // TODO: Check for commit conflicts
+        val transaction = transactions[request.transactionId] ?:
+            throw Exception("Invalid transaction ID")
+        database = transaction.committed()
+        // TODO: Check commit digest
+        return CommitTransactionResult(request.transactionId, request.commitDigest)
+    }
+
+    private fun abortTransaction(): AbortTransactionResult {
+        transactions.clear()
+        return AbortTransactionResult()
+    }
+
+    private fun endSession(): EndSessionResult {
+        abortTransaction()
+        return EndSessionResult()
     }
 }

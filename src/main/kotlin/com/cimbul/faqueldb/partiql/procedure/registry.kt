@@ -1,14 +1,12 @@
 package com.cimbul.faqueldb.partiql.procedure
 
-import com.cimbul.faqueldb.data.Database
+import com.cimbul.faqueldb.data.StatementContext
 import org.partiql.lang.eval.ExprValueFactory
-import org.partiql.lang.eval.builtins.storedprocedure.StoredProcedure
 
-fun createProcedures(database: Database, valueFactory: ExprValueFactory): List<StoredProcedure> =
-    listOf(
-        CreateTable(database, valueFactory),
-        DropTable(database, valueFactory),
-        CreateIndex(database, valueFactory),
-        DropIndex(database, valueFactory),
-        Insert(database, valueFactory),
-    )
+fun createProcedures(context: StatementContext, valueFactory: ExprValueFactory) = listOf(
+    CreateTable(context, valueFactory),
+    DropTable(context, valueFactory),
+    CreateIndex(context, valueFactory),
+    DropIndex(context, valueFactory),
+    Insert(context, valueFactory),
+)

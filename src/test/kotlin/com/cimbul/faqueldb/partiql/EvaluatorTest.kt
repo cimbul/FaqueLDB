@@ -1,8 +1,12 @@
 package com.cimbul.faqueldb.partiql
 
+import com.amazon.ionelement.api.AnyElement
+import com.amazon.ionelement.api.IonElement
 import com.amazon.ionelement.api.ionInt
 import com.amazon.ionelement.api.ionListOf
 import com.amazon.ionelement.api.ionStructOf
+import com.cimbul.faqueldb.data.Database
+import com.cimbul.faqueldb.data.TransactionContext
 import com.cimbul.faqueldb.ionElement
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
@@ -14,15 +18,23 @@ import io.kotest.matchers.shouldNotBe
 import org.partiql.lang.eval.EvaluationException
 
 class EvaluatorTest : DescribeSpec({
-    val evaluator = Evaluator()
+    val database = Database()
+    val transaction = TransactionContext("", database)
+
+    fun evaluate(statement: String, vararg parameters: IonElement): AnyElement {
+        return transaction.inStatementContext(statement) { context ->
+            val evaluator = Evaluator(context)
+            evaluator.evaluate(statement, parameters.asList())
+        }
+    }
 
     describe("evaluate") {
         it("should evaluate expressions") {
-            evaluator.evaluate("1 + 1") shouldBe ionInt(2)
+            evaluate("1 + 1") shouldBe ionInt(2)
         }
 
         it("should interpolate parameters") {
-            evaluator.evaluate("2 + ?", listOf(ionInt(3))) shouldBe ionInt(5)
+            evaluate("2 + ?", ionInt(3)) shouldBe ionInt(5)
         }
 
         it("should support queries on static data") {
@@ -59,7 +71,7 @@ class EvaluatorTest : DescribeSpec({
                     hr.employeesNest AS e
             """
 
-            evaluator.evaluate(query) shouldBe ionElement("""
+            evaluate(query) shouldBe ionElement("""
                 [
                     {
                       "employeeName": "Bob Smith",
@@ -79,23 +91,23 @@ class EvaluatorTest : DescribeSpec({
         describe("DDL") {
             describe("CREATE TABLE") {
                 it("should return a table ID") {
-                    val result = evaluator.evaluate("CREATE TABLE foo")
+                    val result = evaluate("CREATE TABLE foo")
 
                     result.listValues.single().asStruct()["tableId"] shouldNotBe null
                 }
 
                 it("should throw an error if the table exists") {
-                    evaluator.evaluate("CREATE TABLE foo")
+                    evaluate("CREATE TABLE foo")
 
                     shouldThrow<EvaluationException> {
-                        evaluator.evaluate("CREATE TABLE foo")
+                        evaluate("CREATE TABLE foo")
                     }
                 }
 
                 it("should create an empty table") {
-                    evaluator.evaluate("CREATE TABLE foo")
+                    evaluate("CREATE TABLE foo")
 
-                    val result = evaluator.evaluate("SELECT * FROM foo")
+                    val result = evaluate("SELECT * FROM foo")
 
                     result.listValues.shouldBeEmpty()
                 }
@@ -104,38 +116,38 @@ class EvaluatorTest : DescribeSpec({
             describe("DROP TABLE") {
                 it("should throw an error if the table does not exist") {
                     shouldThrow<EvaluationException> {
-                        evaluator.evaluate("DROP TABLE foo")
+                        evaluate("DROP TABLE foo")
                     }
                 }
 
                 it("should return the table ID") {
-                    val createResult = evaluator.evaluate("CREATE TABLE foo")
+                    val createResult = evaluate("CREATE TABLE foo")
                     val createResultStruct = createResult.listValues.single().asStruct()
                     val tableId = createResultStruct["tableId"]
 
-                    val dropResult = evaluator.evaluate("DROP TABLE foo")
+                    val dropResult = evaluate("DROP TABLE foo")
 
                     val dropResultStruct = dropResult.listValues.single().asStruct()
                     dropResultStruct["tableId"] shouldBe tableId
                 }
 
                 it("should remove the table from the namespace") {
-                    evaluator.evaluate("CREATE TABLE foo")
+                    evaluate("CREATE TABLE foo")
 
-                    evaluator.evaluate("DROP TABLE foo")
+                    evaluate("DROP TABLE foo")
 
                     shouldThrow<EvaluationException> {
-                        evaluator.evaluate("SELECT * FROM foo")
+                        evaluate("SELECT * FROM foo")
                     }
                 }
             }
 
             describe("CREATE INDEX") {
-                val tableResult = evaluator.evaluate("CREATE TABLE foo")
+                val tableResult = evaluate("CREATE TABLE foo")
                 val tableId = tableResult.listValues.single().asStruct()["tableId"]
 
                 it("should return the table ID") {
-                    val indexResult = evaluator.evaluate("CREATE INDEX ON foo (bar)")
+                    val indexResult = evaluate("CREATE INDEX ON foo (bar)")
 
                     indexResult.listValues.single().asStruct()["tableId"] shouldBe tableId
                 }
@@ -143,28 +155,28 @@ class EvaluatorTest : DescribeSpec({
         }
 
         describe("DML") {
-            evaluator.evaluate("CREATE TABLE foo")
+            evaluate("CREATE TABLE foo")
 
             describe("INSERT INTO table VALUE value") {
                 it("should insert the record into the table") {
-                    evaluator.evaluate("INSERT INTO foo VALUE {'bar': 'quux'}")
+                    evaluate("INSERT INTO foo VALUE {'bar': 'quux'}")
 
-                    evaluator.evaluate("SELECT * FROM foo") shouldBe ionElement("""
+                    evaluate("SELECT * FROM foo") shouldBe ionElement("""
                         [{bar: "quux"}]
                     """)
                 }
 
                 it("should preserve existing records") {
-                    evaluator.evaluate("INSERT INTO foo VALUE {'a': 1}")
-                    evaluator.evaluate("INSERT INTO foo VALUE {'a': 2}")
+                    evaluate("INSERT INTO foo VALUE {'a': 1}")
+                    evaluate("INSERT INTO foo VALUE {'a': 2}")
 
-                    evaluator.evaluate("SELECT * FROM foo") shouldBe ionElement("""
+                    evaluate("SELECT * FROM foo") shouldBe ionElement("""
                        [{a: 1}, {a: 2}]
                     """)
                 }
 
                 it("should return the document ID of the record") {
-                    val result = evaluator.evaluate("INSERT INTO foo VALUE {'bar': 'quux'}")
+                    val result = evaluate("INSERT INTO foo VALUE {'bar': 'quux'}")
 
                     result.listValues.single().asStruct()["documentId"] shouldNotBe null
                 }
@@ -172,15 +184,15 @@ class EvaluatorTest : DescribeSpec({
 
             describe("INSERT INTO table values") {
                 it("should insert the records into the table") {
-                    evaluator.evaluate("INSERT INTO foo << {'a': 1}, {'a': 2} >>")
+                    evaluate("INSERT INTO foo << {'a': 1}, {'a': 2} >>")
 
-                    evaluator.evaluate("SELECT * FROM foo") shouldBe ionElement("""
+                    evaluate("SELECT * FROM foo") shouldBe ionElement("""
                        [{a: 1}, {a: 2}]
                     """)
                 }
 
                 it("should return the document IDs for each record") {
-                    val result = evaluator.evaluate("INSERT INTO foo << {'a': 1}, {'a': 2} >>")
+                    val result = evaluate("INSERT INTO foo << {'a': 1}, {'a': 2} >>")
 
                     result.listValues shouldHaveSize 2
                     result.listValues.forAll { x ->
@@ -191,21 +203,21 @@ class EvaluatorTest : DescribeSpec({
         }
 
         describe("BY clause") {
-            evaluator.evaluate("CREATE TABLE foo")
-            val insertResult = evaluator.evaluate("INSERT INTO foo << {'x': 0}, {'x': 1} >>")
+            evaluate("CREATE TABLE foo")
+            val insertResult = evaluate("INSERT INTO foo << {'x': 0}, {'x': 1} >>")
             val documentIds = insertResult.listValues.map { it.asStruct()["documentId"] }
 
             it("should support projecting the document ID") {
-                evaluator.evaluate("SELECT docId, foo.x FROM foo BY docId") shouldBe ionListOf(
+                evaluate("SELECT docId, foo.x FROM foo BY docId") shouldBe ionListOf(
                     ionStructOf("docId" to documentIds[0], "x" to ionInt(0)),
                     ionStructOf("docId" to documentIds[1], "x" to ionInt(1)),
                 )
             }
 
             it("should support filtering by the document ID") {
-                val result = evaluator.evaluate(
+                val result = evaluate(
                     "SELECT foo.x FROM foo BY docId WHERE docId = ?",
-                    listOf(documentIds[1])
+                    documentIds[1]
                 )
 
                 result shouldBe ionListOf(
@@ -214,7 +226,7 @@ class EvaluatorTest : DescribeSpec({
             }
 
             it("should work in conjunction with table aliases") {
-                val result = evaluator.evaluate("SELECT docId, bar.x FROM foo AS bar BY docId")
+                val result = evaluate("SELECT docId, bar.x FROM foo AS bar BY docId")
 
                 result shouldBe ionListOf(
                     ionStructOf("docId" to documentIds[0], "x" to ionInt(0)),
@@ -223,7 +235,7 @@ class EvaluatorTest : DescribeSpec({
             }
 
             it("should work in conjunction with self joins") {
-                val result = evaluator.evaluate("""
+                val result = evaluate("""
                     SELECT a_id, a.x AS a_x, b_id, b.x AS b_x
                     FROM foo AS a BY a_id,
                          foo AS b BY b_id

@@ -3,7 +3,7 @@ package com.cimbul.faqueldb.partiql.procedure
 import com.amazon.ionelement.api.ionString
 import com.amazon.ionelement.api.ionStructOf
 import com.amazon.ionelement.api.toIonElement
-import com.cimbul.faqueldb.data.Database
+import com.cimbul.faqueldb.data.StatementContext
 import com.cimbul.faqueldb.data.Table
 import com.cimbul.faqueldb.partiql.internalName
 import com.cimbul.faqueldb.partiql.newFromIonElement
@@ -15,7 +15,7 @@ import org.partiql.lang.eval.builtins.storedprocedure.StoredProcedure
 import org.partiql.lang.eval.builtins.storedprocedure.StoredProcedureSignature
 
 class CreateTable(
-    private val database: Database,
+    private val context: StatementContext,
     private val valueFactory: ExprValueFactory
 ) : StoredProcedure {
     companion object {
@@ -28,12 +28,12 @@ class CreateTable(
         require(args.size == 1)
         val name = args.single().ionValue.toIonElement().textValue
 
-        if (database[name] != null) {
+        if (context.transaction.database[name] != null) {
             throw EvaluationException("Table with name '$name' already exists", internal = false)
         }
 
-        val table = Table(database.newId(), name)
-        database.tables.add(table)
+        val table = Table(context.transaction.database.newId(), name)
+        context.transaction.database = context.transaction.database.withTable(table)
 
         return valueFactory.newBag(listOf(
             valueFactory.newFromIonElement(ionStructOf(
