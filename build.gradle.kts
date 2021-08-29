@@ -41,7 +41,7 @@ dependencies {
     implementation("org.unbroken-dome.base62:base62:1.1.0")
 
     testImplementation("io.kotest:kotest-runner-junit5:4.6.1")
-    testImplementation("io.kotest:kotest-assertions-core:4.0.7")
+    testImplementation("io.kotest:kotest-assertions-core:4.6.1")
 }
 
 configurations.all {
