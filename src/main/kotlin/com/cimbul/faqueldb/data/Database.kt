@@ -37,7 +37,14 @@ data class Database(
             ))
         }
 
-        return this[binding]?.toExprValue(valueFactory)
+        val committedPrefix = "_ql_committed_"
+        if (binding.loweredName.startsWith(committedPrefix)) {
+            val tableName = binding.name.drop(committedPrefix.length)
+            val tableBinding = BindingName(tableName, binding.bindingCase)
+            return this[tableBinding]?.toCommittedView(valueFactory)
+        }
+
+        return this[binding]?.toUserView(valueFactory)
     }
 
     private fun userTables(): IonElement = ionListOf(tables.values.map { it.toMetadata() })

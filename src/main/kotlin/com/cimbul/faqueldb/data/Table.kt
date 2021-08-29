@@ -13,13 +13,20 @@ data class Table(
     val name: String,
     val dropped: Boolean = false,
     val indexes: List<Index> = listOf(),
+    val latestCommittedRevisions: Map<String, CommittedRevision> = mapOf(),
     val latestRevisions: Map<String, Revision> = mapOf(),
     val committedRevisions: List<CommittedRevision> = listOf(),
     val uncommittedRevisions: List<UncommittedRevision> = listOf(),
 ) {
-    fun toExprValue(valueFactory: ExprValueFactory): ExprValue {
+    fun toUserView(valueFactory: ExprValueFactory): ExprValue {
         return valueFactory.newBag(latestRevisions.values.asSequence().map { revision ->
             valueFactory.newFromIonElement(revision.data)
+        })
+    }
+
+    fun toCommittedView(valueFactory: ExprValueFactory): ExprValue {
+        return valueFactory.newBag(latestCommittedRevisions.values.asSequence().map { revision ->
+            valueFactory.newFromIonElement(revision.ionElement)
         })
     }
 
@@ -46,8 +53,10 @@ data class Table(
         }
 
         val committed = uncommittedRevisions.map { it.committed(commit) }
+        val committedById = committed.associateBy { it.id }
         val table = copy(
-            latestRevisions = latestRevisions + committed.map { Pair(it.id, it) },
+            latestCommittedRevisions = latestCommittedRevisions + committedById,
+            latestRevisions = latestRevisions + committedById,
             committedRevisions = committedRevisions + committed,
             uncommittedRevisions = listOf(),
         )
