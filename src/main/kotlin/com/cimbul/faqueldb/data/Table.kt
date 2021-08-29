@@ -1,6 +1,9 @@
 package com.cimbul.faqueldb.data
 
 import com.amazon.ionelement.api.IonElement
+import com.amazon.ionelement.api.ionListOf
+import com.amazon.ionelement.api.ionString
+import com.amazon.ionelement.api.ionStructOf
 import com.cimbul.faqueldb.partiql.newFromIonElement
 import org.partiql.lang.eval.ExprValue
 import org.partiql.lang.eval.ExprValueFactory
@@ -17,4 +20,11 @@ data class Table(
             valueFactory.newFromIonElement(document)
         })
     }
+
+    fun toMetadata(): IonElement = ionStructOf(
+        "tableId" to ionString(id),
+        "name" to ionString(name),
+        "status" to ionString(if (dropped) "INACTIVE" else "ACTIVE"),
+        "indexes" to ionListOf(indexes.map { it.toMetadata() })
+    )
 }

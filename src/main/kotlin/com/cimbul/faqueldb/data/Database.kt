@@ -2,7 +2,6 @@ package com.cimbul.faqueldb.data
 
 import com.amazon.ionelement.api.IonElement
 import com.amazon.ionelement.api.ionListOf
-import com.amazon.ionelement.api.ionString
 import com.amazon.ionelement.api.ionStructOf
 import com.cimbul.faqueldb.nextUUID
 import com.cimbul.faqueldb.partiql.newFromIonElement
@@ -37,22 +36,7 @@ data class Database(
         return this[binding]?.toExprValue(valueFactory)
     }
 
-    private fun userTables(): IonElement {
-        return ionListOf(tables.map { table ->
-            ionStructOf(
-                "tableId" to ionString(table.id),
-                "name" to ionString(table.name),
-                "status" to ionString(if (table.dropped) "INACTIVE" else "ACTIVE"),
-                "indexes" to ionListOf(table.indexes.map { index ->
-                    ionStructOf(
-                        "indexId" to ionString(index.id),
-                        "expr" to ionString("[${index.expr}]"),
-                        "status" to ionString("ONLINE"),
-                    )
-                })
-            )
-        })
-    }
+    private fun userTables(): IonElement = ionListOf(tables.map { it.toMetadata() })
 
     fun newId(): String {
         return Base62.encodeUUID(random.nextUUID())
