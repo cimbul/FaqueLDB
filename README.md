@@ -7,6 +7,10 @@ FaqueLDB is a testing-oriented in-memory database that aims to be a drop-in repl
 ## Support
 
 FaqueLDB currently supports:
+ * **Transactions**
+   * Full [journal](https://docs.aws.amazon.com/qldb/latest/developerguide/journal-contents.html) with verifiable hashes
+   * Commit or abort transactions
+   * [Committed views](https://docs.aws.amazon.com/qldb/latest/developerguide/working.metadata.html) (`_ql_committed_*`)
  * **`SELECT` Queries**:
    * Everything supported by the [PartiQL reference implementation](https://github.com/partiql/partiql-lang-kotlin), including conditionals, joins, and navigating nested data structures
    * The [`BY` clause](https://docs.aws.amazon.com/qldb/latest/developerguide/working.metadata.by-clause.html) to retrieve document IDs
@@ -37,11 +41,9 @@ These features of QLDB are not currently supported, but are **on the roadmap**:
  * **Functions**:
    * [`TXID`](https://docs.aws.amazon.com/qldb/latest/developerguide/ql-functions.txid.html)
    * [`HISTORY`](https://docs.aws.amazon.com/qldb/latest/developerguide/working.history.html)
- * True transaction support, including rollbacks
  * Multiple ledgers
 
 These features of QLDB are **not supported** and are low priority:
- * Hashing & verification
  * The [control plane](https://docs.aws.amazon.com/qldb/latest/developerguide/API_Operations_Amazon_QLDB.html) and all its features, including ledger management, exports, streams, and tags
 
 ## Usage
