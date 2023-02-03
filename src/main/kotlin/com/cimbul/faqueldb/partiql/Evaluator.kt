@@ -8,11 +8,10 @@ import com.cimbul.faqueldb.data.StatementContext
 import com.cimbul.faqueldb.partiql.function.createFunctions
 import com.cimbul.faqueldb.partiql.procedure.createProcedures
 import org.partiql.lang.CompilerPipeline
-import org.partiql.lang.ast.toAstStatement
-import org.partiql.lang.ast.toExprNode
 import org.partiql.lang.eval.Bindings
 import org.partiql.lang.eval.EvaluationSession
 import org.partiql.lang.eval.ExprValueFactory
+import org.partiql.lang.eval.toIonValue
 import org.partiql.lang.eval.visitors.PipelinedVisitorTransform
 
 class Evaluator(private val context: StatementContext) {
@@ -23,10 +22,8 @@ class Evaluator(private val context: StatementContext) {
         ProcedureTransformer(),
     )
     private val compiler = CompilerPipeline.build(valueFactory) {
-        addPreprocessingStep { exprNode, _ ->
-            val preTransform = exprNode.toAstStatement()
-            val postTransform = transform.transformStatement(preTransform)
-            postTransform.toExprNode(ion)
+        addPreprocessingStep { statement, _ ->
+            transform.transformStatement(statement)
         }
 
         for (procedure in createProcedures(context, valueFactory)) {
@@ -48,6 +45,6 @@ class Evaluator(private val context: StatementContext) {
             })
         }
         val value = expression.eval(session)
-        return value.ionValue.toIonElement()
+        return value.toIonValue(ion).toIonElement()
     }
 }

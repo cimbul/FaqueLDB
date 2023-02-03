@@ -15,6 +15,7 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import org.partiql.lang.eval.BAG_ANNOTATION
 import org.partiql.lang.eval.EvaluationException
 
 class EvaluatorTest : DescribeSpec({
@@ -26,6 +27,10 @@ class EvaluatorTest : DescribeSpec({
             val evaluator = Evaluator(context)
             evaluator.evaluate(statement, parameters.asList())
         }
+    }
+
+    fun IonElement.withBagAnnotation(): IonElement {
+        return this.withAnnotations(BAG_ANNOTATION)
     }
 
     describe("evaluate") {
@@ -85,7 +90,7 @@ class EvaluatorTest : DescribeSpec({
                       "firstProjectName": "AWS Redshift security"
                     }
                 ]
-            """)
+            """).withBagAnnotation()
         }
 
         describe("DDL") {
@@ -163,7 +168,7 @@ class EvaluatorTest : DescribeSpec({
 
                     evaluate("SELECT * FROM foo") shouldBe ionElement("""
                         [{bar: "quux"}]
-                    """)
+                    """).withBagAnnotation()
                 }
 
                 it("should preserve existing records") {
@@ -172,7 +177,7 @@ class EvaluatorTest : DescribeSpec({
 
                     evaluate("SELECT * FROM foo") shouldBe ionElement("""
                        [{a: 1}, {a: 2}]
-                    """)
+                    """).withBagAnnotation()
                 }
 
                 it("should return the document ID of the record") {
@@ -188,7 +193,7 @@ class EvaluatorTest : DescribeSpec({
 
                     evaluate("SELECT * FROM foo") shouldBe ionElement("""
                        [{a: 1}, {a: 2}]
-                    """)
+                    """).withBagAnnotation()
                 }
 
                 it("should return the document IDs for each record") {
@@ -211,7 +216,7 @@ class EvaluatorTest : DescribeSpec({
                 evaluate("SELECT docId, foo.x FROM foo BY docId") shouldBe ionListOf(
                     ionStructOf("docId" to documentIds[0], "x" to ionInt(0)),
                     ionStructOf("docId" to documentIds[1], "x" to ionInt(1)),
-                )
+                ).withBagAnnotation()
             }
 
             it("should support filtering by the document ID") {
@@ -222,7 +227,7 @@ class EvaluatorTest : DescribeSpec({
 
                 result shouldBe ionListOf(
                     ionStructOf("x" to ionInt(1))
-                )
+                ).withBagAnnotation()
             }
 
             it("should work in conjunction with table aliases") {
@@ -231,7 +236,7 @@ class EvaluatorTest : DescribeSpec({
                 result shouldBe ionListOf(
                     ionStructOf("docId" to documentIds[0], "x" to ionInt(0)),
                     ionStructOf("docId" to documentIds[1], "x" to ionInt(1)),
-                )
+                ).withBagAnnotation()
             }
 
             it("should work in conjunction with self joins") {
@@ -255,7 +260,7 @@ class EvaluatorTest : DescribeSpec({
                         "a_id" to documentIds[1], "b_id" to documentIds[1],
                         "a_x" to ionInt(1),       "b_x" to ionInt(1),
                     ),
-                )
+                ).withBagAnnotation()
             }
         }
     }

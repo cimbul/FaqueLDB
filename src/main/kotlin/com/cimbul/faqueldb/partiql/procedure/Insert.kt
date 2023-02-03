@@ -2,10 +2,11 @@ package com.cimbul.faqueldb.partiql.procedure
 
 import com.amazon.ionelement.api.ionString
 import com.amazon.ionelement.api.ionStructOf
-import com.amazon.ionelement.api.toIonElement
 import com.cimbul.faqueldb.data.StatementContext
 import com.cimbul.faqueldb.partiql.internalName
 import com.cimbul.faqueldb.partiql.newFromIonElement
+import com.cimbul.faqueldb.partiql.toIonElement
+import org.partiql.lang.errors.ErrorCode
 import org.partiql.lang.eval.EvaluationException
 import org.partiql.lang.eval.EvaluationSession
 import org.partiql.lang.eval.ExprValue
@@ -25,11 +26,12 @@ class Insert(
 
     override fun call(session: EvaluationSession, args: List<ExprValue>): ExprValue {
         require(args.size == 2)
-        val tableName = args[0].ionValue.toIonElement().textValue
-        val values = args[1].ionValue.toIonElement().listValues
+        val tableName = args[0].toIonElement(valueFactory).textValue
+        val values = args[1].toIonElement(valueFactory).listValues
 
         val table = context.transaction.database[tableName] ?:
-            throw EvaluationException("Table named '$tableName' does not exist", internal = true)
+            throw EvaluationException("Table named '$tableName' does not exist",
+                ErrorCode.EVALUATOR_BINDING_DOES_NOT_EXIST, internal = false)
         val valuesById = values.associateBy { context.transaction.database.newId() }
 
         for ((id, value) in valuesById) {

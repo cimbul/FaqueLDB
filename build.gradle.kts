@@ -26,7 +26,7 @@ application {
 }
 
 dependencies {
-    implementation("org.partiql:partiql-lang-kotlin:0.3.1")
+    implementation("org.partiql:partiql-lang-kotlin:0.9.2")
 
     implementation("com.amazon.ion:ion-hash-java:1.0.0")
 

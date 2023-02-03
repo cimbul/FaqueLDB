@@ -2,11 +2,12 @@ package com.cimbul.faqueldb.partiql.procedure
 
 import com.amazon.ionelement.api.ionString
 import com.amazon.ionelement.api.ionStructOf
-import com.amazon.ionelement.api.toIonElement
 import com.cimbul.faqueldb.data.Index
 import com.cimbul.faqueldb.data.StatementContext
 import com.cimbul.faqueldb.partiql.internalName
 import com.cimbul.faqueldb.partiql.newFromIonElement
+import com.cimbul.faqueldb.partiql.toIonElement
+import org.partiql.lang.errors.ErrorCode
 import org.partiql.lang.eval.EvaluationException
 import org.partiql.lang.eval.EvaluationSession
 import org.partiql.lang.eval.ExprValue
@@ -26,16 +27,18 @@ class CreateIndex(
 
     override fun call(session: EvaluationSession, args: List<ExprValue>): ExprValue {
         require(args.size == 2)
-        val tableName = args[0].ionValue.toIonElement().textValue
-        val indexFields = args[1].ionValue.toIonElement()
+        val tableName = args[0].toIonElement(valueFactory).textValue
+        val indexFields = args[1].toIonElement(valueFactory)
         require(indexFields.listValues.size == 1) { "Indexes only supported on exactly one field" }
         val indexField = indexFields.listValues.single().textValue
 
         val table = context.transaction.database[tableName] ?:
-            throw EvaluationException("Table '$tableName' does not exist", internal = false)
+            throw EvaluationException("Table '$tableName' does not exist",
+                ErrorCode.EVALUATOR_BINDING_DOES_NOT_EXIST, internal = false)
 
         if (table.indexes.any { it.expr == indexField }) {
-            throw EvaluationException("Index on field $indexField already exists", internal = false)
+            throw EvaluationException("Index on field $indexField already exists",
+                ErrorCode.SEMANTIC_PROBLEM, internal = false)
         }
 
         val indexes = table.indexes + Index(context.transaction.database.newId(), indexField)
