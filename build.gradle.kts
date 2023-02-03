@@ -30,18 +30,18 @@ dependencies {
 
     implementation("com.amazon.ion:ion-hash-java:1.0.0")
 
-    implementation(platform("org.http4k:http4k-bom:4.11.0.1"))
+    implementation(platform("org.http4k:http4k-bom:4.37.0.0"))
     implementation("org.http4k:http4k-core")
     implementation("org.http4k:http4k-server-netty")
 
-    val jacksonVersion = "2.12.4"
+    val jacksonVersion = "2.14.2"
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
 
     implementation("org.unbroken-dome.base62:base62:1.1.0")
 
-    testImplementation("io.kotest:kotest-runner-junit5:4.6.1")
-    testImplementation("io.kotest:kotest-assertions-core:4.6.1")
+    testImplementation("io.kotest:kotest-runner-junit5:5.5.4")
+    testImplementation("io.kotest:kotest-assertions-core:5.5.4")
 }
 
 configurations.all {
